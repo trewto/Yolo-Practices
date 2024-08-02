@@ -1,0 +1,5 @@
+train: /Machine Learning Goal/Yolo-Practices/p2/data/train/images
+val: /Machine Learning Goal/Yolo-Practices/p2/data/valid/images
+
+nc: 5
+names: ['Helmet', 'Goggles', 'Jacket', 'Gloves', 'Footwear']
