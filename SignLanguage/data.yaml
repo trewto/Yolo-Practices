@@ -1,0 +1,5 @@
+train: /Machine Learning Goal/Yolo-Practices/SignLanguage/train/images
+val: /Machine Learning Goal/Yolo-Practices/SignLanguage/test/images
+
+nc: 6
+names: ['Hello', 'IloveYou', 'No', 'Please', 'Thanks', 'Yes']

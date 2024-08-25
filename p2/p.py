@@ -3,4 +3,4 @@
 
 #!yolo task=classify mode=predict model=yolov8n-cls.pt source="images/1.jpg"
 #for detect
-#yolo task=detect mode=predict model=runs/detect/train7/weights/best.pt source="39.jpeg"
+#yolo task=detect mode=predict model=runs/detect/train/weights/best.pt source="39.jpeg"
