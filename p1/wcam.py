@@ -1,9 +1,14 @@
+
+from collections import defaultdict
 import cv2
+import numpy as np
 from ultralytics import YOLO
+import supervision as sv
+
 
 # Load the YOLO model
-model = YOLO("yolov8n.pt")
-
+#model = YOLO("yolov8n.pt")
+"""
 # Define class names (these are the COCO dataset class names used by YOLOv8)
 class_names = [
     "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
@@ -16,6 +21,9 @@ class_names = [
     "cell phone", "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase",
     "scissors", "teddy bear", "hair drier", "toothbrush"
 ]
+"""
+
+model = YOLO("yolov8s.pt")
 
 # Open the webcam (usually the default webcam is at index 0)
 cap = cv2.VideoCapture(0)
@@ -23,39 +31,57 @@ cap = cv2.VideoCapture(0)
 if not cap.isOpened():
     print("Error: Could not open webcam.")
     exit()
+n = 0
+class_names = model.names
+
+# Display the number of classes and their names
+#num_classes = len(class_names)
+#print(f"Number of classes: {num_classes}")
+#print("Class names:", class_names)
+
+
+skip_num =2
 
 while True:
     # Read a frame from the webcam
-    ret, frame = cap.read()
+    success, frame = cap.read()
+    
+    if not success:
+        print("Error: Could not read the frame.")
+        cap.release()
+        exit()
 
-    if not ret:
-        print("Error: Failed to capture image.")
+    key = cv2.waitKey(1) & 0xFF
+    if key == ord('q'):  # Quit the program
         break
+    elif key == ord('i'):  # Increase skip_num
+        skip_num += 1
+        print(f"skip_num increased to {skip_num}")
+    elif key == ord('k'):  # Decrease skip_num
+        skip_num = max(1, skip_num - 1)  # Ensure skip_num doesn't go below 1
+        print(f"skip_num decreased to {skip_num}")
 
-    # Perform inference on the frame
-    results = model(frame)  # return a list of Results objects
+        
+    #press q to quit program
+    if cv2.waitKey(1):
+        if  0xFF == ord('q'):
+            break
+        
+        
+    n = n + 1
 
-    # Process results
-    for result in results:
-        # Draw bounding boxes and labels on the frame
-        for box in result.boxes:
-            x1, y1, x2, y2 = map(int, box.xyxy[0])
-            conf = box.conf[0]
-            class_idx = int(box.cls[0])
+    #make the fram speedy by skipping every other frame
+    if n%skip_num == 0:
+        continue
 
-            # Get class name from class index
-            label = class_names[class_idx]
+    results= model.track(frame, persist=True,verbose=False)
+    boxes = results[0].boxes.xywh.cpu()
+    track_ids = results[0].boxes.id
+    class_ids = results[0].boxes.cls.int().cpu().tolist()
+    annotated_frame = results[0].plot()
 
-            # Draw rectangle and label on the frame
-            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-            cv2.putText(frame, f'{label}: {conf:.2f}', (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-
-    # Display the frame with the detection
-    cv2.imshow("YOLOv8 Webcam Detection", frame)
-
-    # Break the loop if 'q' is pressed
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+    cv2.imshow("YOLOv8 Tracking", annotated_frame)
+    
 
 # Release the webcam and close all OpenCV windows
 cap.release()
